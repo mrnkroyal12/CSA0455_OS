@@ -1,0 +1,98 @@
+#include <stdio.h>
+
+struct Process {
+    int pid;            // Process ID
+    int at;             // Arrival Time
+    int bt;             // Burst Time
+    int remaining_bt;   // Remaining Burst Time (for preemption)
+    int priority;       // Priority (lower value means higher priority)
+    int start_time;     // Start Time
+    int end_time;       // End Time
+    int waiting_time;   // Waiting Time
+    int turnaround_time;// Turnaround Time
+};
+
+void preemptivePriorityScheduling(struct Process proc[], int n) {
+    int time = 0, completed = 0, i, j;
+    int total_waiting_time = 0, total_turnaround_time = 0;
+
+    // Preemptive Scheduling loop
+    while (completed < n) {
+        // Find process with highest priority (smallest priority number) and arrived before or at current time
+        int idx = -1;
+        int highest_priority = 9999; // A large value to compare priorities
+        for (i = 0; i < n; i++) {
+            if (proc[i].at <= time && proc[i].remaining_bt > 0 && proc[i].priority < highest_priority) {
+                highest_priority = proc[i].priority;
+                idx = i;
+            }
+        }
+
+        if (idx != -1) {
+            // Execute the selected process for 1 unit of time
+            if (proc[idx].remaining_bt == proc[idx].bt) {
+                proc[idx].start_time = time;
+            }
+            proc[idx].remaining_bt--;
+
+            // If the process finishes, calculate its waiting time and turnaround time
+            if (proc[idx].remaining_bt == 0) {
+                proc[idx].end_time = time + 1;
+                proc[idx].turnaround_time = proc[idx].end_time - proc[idx].at;
+                proc[idx].waiting_time = proc[idx].turnaround_time - proc[idx].bt;
+
+                total_waiting_time += proc[idx].waiting_time;
+                total_turnaround_time += proc[idx].turnaround_time;
+                completed++;
+                printf("Process %d: Arrival Time = %d, Burst Time = %d, Waiting Time = %d, Turnaround Time = %d\n", 
+                    proc[idx].pid, proc[idx].at, proc[idx].bt, proc[idx].waiting_time, proc[idx].turnaround_time);
+            }
+        }
+        time++; // Increment time after each unit
+    }
+
+    // Calculate and print average waiting time and turnaround time
+    printf("\nAverage Waiting Time: %.2f\n", (float)total_waiting_time / n);
+    printf("Average Turnaround Time: %.2f\n", (float)total_turnaround_time / n);
+}
+
+int main() {
+    int n, i;
+    
+    // Input the number of processes
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+    
+    struct Process proc[n];
+    
+    // Input process details
+    for (i = 0; i < n; i++) {
+        proc[i].pid = i + 1;  // Process ID
+        printf("\nEnter arrival time, burst time, and priority for Process %d:\n", proc[i].pid);
+        printf("Arrival time: ");
+        scanf("%d", &proc[i].at);
+        printf("Burst time: ");
+        scanf("%d", &proc[i].bt);
+        printf("Priority (lower number means higher priority): ");
+        scanf("%d", &proc[i].priority);
+        
+        proc[i].remaining_bt = proc[i].bt; // Initialize remaining burst time
+    }
+    
+    // Sort processes by arrival time
+    struct Process temp;
+    for (i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (proc[i].at > proc[j].at) {
+                temp = proc[i];
+                proc[i] = proc[j];
+                proc[j] = temp;
+            }
+        }
+    }
+
+    // Run preemptive priority scheduling
+    preemptivePriorityScheduling(proc, n);
+
+    return 0;
+}
