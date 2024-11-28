@@ -1,0 +1,12 @@
+#include <stdio.h>
+#include <windows.h>  // For GetCurrentProcessId
+
+int main() {
+    // Get the current process ID
+    DWORD processID = GetCurrentProcessId();
+
+    // Print the current process ID
+    printf("Process ID: %lu\n", processID);
+
+    return 0;
+}
